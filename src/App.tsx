@@ -14,6 +14,7 @@ import { UserProvider } from "./UserContext";
 import Navbar from "./Navbar";
 import FormModal from "./FormModal";
 import AlertComponent from "./AlertComponent";
+import Transactions from "./Transactions";
 
 const App: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -31,6 +32,7 @@ const App: React.FC = () => {
                 <Route path="/input" element={<InputPage />} />
                 <Route path="/submissions" element={<Submissions />} />
                 <Route path="/fixed-deposits" element={<FixedDeposits />} />
+                <Route path="/transactions" element={<Transactions />} />
               </Routes>
             </div>
             <Sidebar />

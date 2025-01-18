@@ -44,6 +44,9 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenForm }) => {
         <Link to="/input" style={navItemStyle}>
           Add Expenses
         </Link>
+        <Link to="/transactions" style={navItemStyle}>
+          Transactions
+        </Link>
         <button
           onClick={onOpenForm}
           style={{
