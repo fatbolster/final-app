@@ -85,8 +85,36 @@ const AlertComponent: React.FC = () => {
       {/* Scrollable container */}
       <div
         style={{
-          flexGrow: 1, // Ensures this div stretches to fill available space
-          overflowY: "auto",
+          padding: "10px",
+          border: "1px solid red",
+          marginBottom: "10px",
+          backgroundColor: "#FFE4E1",
+          color: "#990000",
+          borderRadius: "5px",
+        }}
+      >
+        {exceedsThreshold ? (
+          <p>
+            ⚠️ Alert: You have exceeded your budgeted spending for the month so
+            far! <br />
+            <strong>Allowed Spending:</strong> ${allowedSpending.toFixed(2)}{" "}
+            <br />
+            <strong>Total Expenditure:</strong> ${totalExpenditure.toFixed(2)}
+          </p>
+        ) : (
+          <p>
+            ✅ Your spending is within the budget for the month so far! <br />
+            <strong>Allowed Spending:</strong> ${allowedSpending.toFixed(2)}{" "}
+            <br />
+            <strong>Total Expenditure:</strong> ${totalExpenditure.toFixed(2)}
+          </p>
+        )}
+      </div>
+
+      {/* Placeholder Box for AI-Generated Messages */}
+      <div
+        style={{
+          padding: "15px",
           border: "1px solid #ccc",
           borderRadius: "10px",
           padding: "10px",

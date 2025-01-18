@@ -50,7 +50,7 @@ const App: React.FC = () => {
 const Sidebar: React.FC = () => {
   const location = useLocation(); // Get the current route
 
-  const hideAlertOnRoutes = ["/input", "/fixed-deposits"]; // Routes where AlertComponent should be hidden
+  const hideAlertOnRoutes = ["/input", "/fixed-deposits", "/transactions"]; // Routes where AlertComponent should be hidden
 
   return (
     <div
