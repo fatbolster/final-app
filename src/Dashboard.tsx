@@ -12,6 +12,7 @@ const Dashboard: React.FC = () => {
   const [expenditureData, setExpenditureData] = useState<any[]>([]); // Store raw expenditure data
   const [categoryTotals, setCategoryTotals] = useState<any | null>(null); // Sum totals for each category
   const [totalExpenditure, setTotalExpenditure] = useState<number>(0); // Total expenditure for selected month
+  const [targetSavings, setTargetSavings] = useState<number>(0); // Target savings fetched from user/get
 
   if (!userContext) {
     throw new Error("Dashboard must be used within a UserProvider");
@@ -24,13 +25,31 @@ const Dashboard: React.FC = () => {
     return <p>No data available. Please submit your details.</p>;
   }
 
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const response = await fetch("http://localhost:5001/api/user/expense");
+        if (!response.ok) {
+          throw new Error("Failed to fetch user details");
+        }
+        const data = await response.json();
+        console.log("Fetched User Details:", data);
+
+        // Extract target savings from the data
+        setTargetSavings(data.targetSavings); // Use the `targetSavings` field
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
+    };
+
+    fetchUserDetails();
+  }, []);
+
   // Fetch expenditure data and extract unique months
   useEffect(() => {
     const fetchExpenditures = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:5001/api/expenditure/get"
-        );
+        const response = await fetch("http://localhost:5001/api/user/expense");
         if (!response.ok) {
           throw new Error("Failed to fetch expenditure data");
         }
@@ -99,9 +118,80 @@ const Dashboard: React.FC = () => {
   const remainingBudget =
     latestSubmission.monthlyIncome - (totalExpenditure || 0);
   const progress = Math.min(
-    (remainingBudget / latestSubmission.targetNetWorth) * 100,
+    (remainingBudget / targetSavings) * 100, // Use targetSavings fetched from user/get
     100
   );
+
+  useEffect(() => {
+    const fetchExpenditures = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5001/api/expenditure/get"
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch expenditure data");
+        }
+        const data = await response.json();
+
+        console.log("Fetched Expenditure Data from API:", data);
+
+        // Extract unique months from the response
+        const months = [...new Set(data.map((item: any) => item.month))];
+        setAvailableMonths(months);
+
+        // Set default selected month to the first available month
+        if (months.length > 0) {
+          setSelectedMonth(months[0]);
+        }
+
+        // Store raw expenditure data for further processing
+        setExpenditureData(data);
+      } catch (error) {
+        console.error("Error fetching expenditure data:", error);
+      }
+    };
+
+    fetchExpenditures();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedMonth || expenditureData.length === 0) {
+      setCategoryTotals(null);
+      setTotalExpenditure(0);
+      return;
+    }
+
+    const totals: any = {
+      food: 0,
+      lifestyle: 0,
+      shopping: 0,
+      entertainment: 0,
+    };
+
+    // Filter expenditures for the selected month and compute totals
+    expenditureData
+      .filter((expenditure: any) => expenditure.month === selectedMonth)
+      .forEach((expenditure: any) => {
+        expenditure.allocation.forEach((category: any) => {
+          if (totals[category.category.toLowerCase()] !== undefined) {
+            category.transactions.forEach((transaction: any) => {
+              totals[category.category.toLowerCase()] += transaction.amount;
+            });
+          }
+        });
+      });
+
+    console.log("Category Totals for Selected Month:", totals);
+
+    setCategoryTotals(totals);
+
+    // Compute total expenditure dynamically
+    const total = Object.values(totals).reduce(
+      (acc: number, value: number) => acc + value,
+      0
+    );
+    setTotalExpenditure(total);
+  }, [selectedMonth, expenditureData]);
 
   return (
     <div>
@@ -170,7 +260,7 @@ const Dashboard: React.FC = () => {
         </div>
         <p>
           Remaining Budget: ${remainingBudget.toFixed(2)} <br />
-          Targetted Savings: ${latestSubmission.targetNetWorth.toFixed(2)}
+          Targetted Savings: ${targetSavings.toFixed(2)}
         </p>
       </div>
 

@@ -91,10 +91,6 @@ const RingChart: React.FC<RingChartProps> = ({ data }) => {
         ctx.fillStyle = "#000";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-
-        // Draw the total expenditure text dynamically
-        const text = `$${totalExpenditure.toFixed(2)}`; // Ensure total is a number with two decimal places
-        ctx.fillText(text, centerX, centerY);
         ctx.restore();
       },
     },

@@ -1,5 +1,5 @@
 const express = require('express');
-const { updateUser, initializeUser } = require('../controllers/userController');
+const { updateUser, initializeUser, retrieveUser } = require('../controllers/userController');
 
 const router = express.Router();
 
@@ -9,4 +9,5 @@ router.post('/initial', initializeUser);
 // Update user details
 router.put('/update', updateUser);
 
+router.get('/expense', retrieveUser)
 module.exports = router;
