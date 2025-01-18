@@ -62,6 +62,7 @@ const getExpenditures = async (req, res) => {
     }
 };
 
+
 module.exports = {
     addOrUpdateExpenditure,
     getExpenditures

@@ -33,7 +33,6 @@ const analyzeSpending = async (req, res) => {
 
         const prompt = `
 User Demographic Information:
-- Name: ${user.name}
 - Age Group: ${user.ageGroup}
 - Monthly Income: $${user.monthlyIncome}
 - Monthly Budget: $${user.monthlyBudget}

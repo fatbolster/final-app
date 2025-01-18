@@ -1,81 +1,110 @@
-import React, { useState, useContext } from "react";
-import { ExpenditureContext } from "./ExpenditureContext";
+import React, { useState, useEffect } from "react";
 
 const Transactions: React.FC = () => {
-  const expenditureContext = useContext(ExpenditureContext);
+  const [transactionsData, setTransactionsData] = useState<any[]>([]); // Full fetched data
+  const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]); // Filtered transactions
+  const [availableMonths, setAvailableMonths] = useState<string[]>([]); // Available months
+  const [selectedMonth, setSelectedMonth] = useState<string>(""); // Selected month
+  const [selectedCategory, setSelectedCategory] = useState<string>("all"); // Selected category
 
-  if (!expenditureContext) {
-    throw new Error("Transactions must be used within an ExpenditureProvider");
-  }
+  const capitalize = (str: string): string =>
+    str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
 
-  const { expenditures } = expenditureContext;
+  // Fetch transactions data from API
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5001/api/expenditure/get"
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch transactions");
+        }
+        const data = await response.json();
 
-  const [transactions, setTransactions] = useState([
-    {
-      id: 1,
-      sector: "food",
-      description: "Lunch at Cafe",
-      amount: 20,
-      date: "2025-01-01",
-    },
-    {
-      id: 2,
-      sector: "shopping",
-      description: "Bought a jacket",
-      amount: 50,
-      date: "2025-01-05",
-    },
-    {
-      id: 3,
-      sector: "entertainment",
-      description: "Movie ticket",
-      amount: 15,
-      date: "2025-01-10",
-    },
-    {
-      id: 4,
-      sector: "lifestyle",
-      description: "Yoga class",
-      amount: 30,
-      date: "2025-01-15",
-    },
-  ]);
+        setTransactionsData(data); // Save fetched data
 
-  const [selectedMonth, setSelectedMonth] = useState<string>(
-    new Date().toISOString().slice(0, 7)
-  );
-  const [selectedSector, setSelectedSector] = useState<string>("all");
+        // Extract unique months from the response
+        const months = data.map((item: any) => item.month);
+        setAvailableMonths(months); // Set unique months
+        setSelectedMonth(months[0]); // Set default month to the first available
+      } catch (error) {
+        console.error("Error fetching transactions:", error);
+      }
+    };
 
-  const handleMonthChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedMonth(event.target.value);
-  };
+    fetchTransactions();
+  }, []);
 
-  const handleSectorChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedSector(event.target.value);
-  };
+  // Filter transactions whenever `selectedMonth` or `selectedCategory` changes
+  useEffect(() => {
+    if (!selectedMonth) return;
+
+    const monthData = transactionsData.find(
+      (item: any) => item.month === selectedMonth
+    );
+
+    if (monthData) {
+      const flattenedTransactions = monthData.allocation.flatMap(
+        (allocation: any) =>
+          allocation.transactions.map((transaction: any) => ({
+            ...transaction,
+            category: allocation.category, // Add category to each transaction
+          }))
+      );
+
+      const filtered =
+        selectedCategory === "all"
+          ? flattenedTransactions
+          : flattenedTransactions.filter(
+              (transaction: any) => transaction.category === selectedCategory
+            );
+
+      setFilteredTransactions(filtered);
+    } else {
+      setFilteredTransactions([]);
+    }
+  }, [selectedMonth, selectedCategory, transactionsData]);
 
   // Handle deleting a transaction
-  const handleDelete = (id: number) => {
-    setTransactions((prevTransactions) =>
-      prevTransactions.filter((transaction) => transaction.id !== id)
-    );
-  };
+  const handleDelete = async (transactionId: string) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/expenditure/delete`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ transactionId }),
+        }
+      );
 
-  const filteredTransactions = transactions.filter((transaction) => {
-    const transactionMonth = transaction.date.slice(0, 7);
-    const matchesMonth = transactionMonth === selectedMonth;
-    const matchesSector =
-      selectedSector === "all" || transaction.sector === selectedSector;
+      if (!response.ok) {
+        throw new Error("Failed to delete transaction");
+      }
 
-    return matchesMonth && matchesSector;
-  });
+      // Re-fetch data to update the UI
+      const updatedData = await response.json();
+      setTransactionsData(updatedData);
 
-  // Helper function to capitalize the first letter of each word
-  const capitalize = (str: string) => {
-    return str
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
+      // Refetch filtered data
+      const monthData = updatedData.find(
+        (item: any) => item.month === selectedMonth
+      );
+      const flattenedTransactions = monthData
+        ? monthData.allocation.flatMap((allocation: any) =>
+            allocation.transactions.map((transaction: any) => ({
+              ...transaction,
+              category: allocation.category,
+            }))
+          )
+        : [];
+      setFilteredTransactions(flattenedTransactions);
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+    }
   };
 
   return (
@@ -96,28 +125,36 @@ const Transactions: React.FC = () => {
           flexWrap: "wrap",
         }}
       >
+        {/* Month Filter */}
         <div>
           <label>
             Filter by Month:
-            <input
-              type="month"
+            <select
               value={selectedMonth}
-              onChange={handleMonthChange}
+              onChange={(e) => setSelectedMonth(e.target.value)}
               style={{
                 marginLeft: "10px",
                 padding: "5px",
                 borderRadius: "5px",
                 border: "1px solid #ccc",
               }}
-            />
+            >
+              {availableMonths.map((month) => (
+                <option key={month} value={month}>
+                  {month}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
+
+        {/* Category Filter */}
         <div>
           <label>
-            Filter by Sector:
+            Filter by Category:
             <select
-              value={selectedSector}
-              onChange={handleSectorChange}
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
               style={{
                 marginLeft: "10px",
                 padding: "5px",
@@ -134,6 +171,7 @@ const Transactions: React.FC = () => {
           </label>
         </div>
       </div>
+
       <div
         style={{
           maxWidth: "800px",
@@ -172,19 +210,43 @@ const Transactions: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredTransactions.map((transaction) => (
-                <tr key={transaction.id}>
-                  <td style={{ padding: "10px", border: "1px solid #ccc" }}>
-                    {capitalize(transaction.sector)}
+              {filteredTransactions.map((transaction: any, index: number) => (
+                <tr key={index}>
+                  <td
+                    style={{
+                      padding: "10px",
+                      border: "1px solid #ccc",
+                      color: "black",
+                    }}
+                  >
+                    {capitalize(transaction.category)}
                   </td>
-                  <td style={{ padding: "10px", border: "1px solid #ccc" }}>
+                  <td
+                    style={{
+                      padding: "10px",
+                      border: "1px solid #ccc",
+                      color: "black",
+                    }}
+                  >
                     {transaction.description}
                   </td>
-                  <td style={{ padding: "10px", border: "1px solid #ccc" }}>
+                  <td
+                    style={{
+                      padding: "10px",
+                      border: "1px solid #ccc",
+                      color: "black",
+                    }}
+                  >
                     ${transaction.amount.toFixed(2)}
                   </td>
-                  <td style={{ padding: "10px", border: "1px solid #ccc" }}>
-                    {transaction.date}
+                  <td
+                    style={{
+                      padding: "10px",
+                      border: "1px solid #ccc",
+                      color: "black",
+                    }}
+                  >
+                    {transaction.dateLogged}
                   </td>
                   <td
                     style={{
@@ -194,7 +256,7 @@ const Transactions: React.FC = () => {
                     }}
                   >
                     <button
-                      onClick={() => handleDelete(transaction.id)}
+                      onClick={() => handleDelete(transaction._id)}
                       style={{
                         background: "#990011",
                         color: "#FCF6F5",
@@ -213,7 +275,7 @@ const Transactions: React.FC = () => {
           </table>
         ) : (
           <p style={{ textAlign: "center", color: "#990011" }}>
-            No transactions found for the selected month and sector.
+            No transactions found for the selected month and category.
           </p>
         )}
       </div>

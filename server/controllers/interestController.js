@@ -22,8 +22,8 @@ const scrapeFixedDepositRates = async (req, res) => {
             rows.forEach(row => {
                 const bankName = row.querySelector('td:nth-child(1)')?.innerText.trim();
                 const tenure = row.querySelector('td:nth-child(2)')?.innerText.trim();
-                const minAmount = row.querySelector('td:nth-child(3)')?.innerText.trim();
-                const interestRate = row.querySelector('td:nth-child(4)')?.innerText.trim();
+                const minAmount = row.querySelector('td:nth-child(4)')?.innerText.trim();
+                const interestRate = row.querySelector('td:nth-child(3)')?.innerText.trim();
 
                 if (bankName) {
                     // Start a new bank group

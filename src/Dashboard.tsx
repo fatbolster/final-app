@@ -2,18 +2,20 @@ import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "./UserContext";
 import RingChart from "./RingChart";
+import { useMonthContext } from "./MouthContext";
 
 const Dashboard: React.FC = () => {
   const userContext = useContext(UserContext);
+  const { selectedMonth, setSelectedMonth } = useMonthContext();
   const navigate = useNavigate();
 
   const [availableMonths, setAvailableMonths] = useState<string[]>([]); // Dynamically fetched months
-  const [selectedMonth, setSelectedMonth] = useState<string>(""); // Selected month
+
   const [expenditureData, setExpenditureData] = useState<any[]>([]); // Store raw expenditure data
   const [categoryTotals, setCategoryTotals] = useState<any | null>(null); // Sum totals for each category
   const [totalExpenditure, setTotalExpenditure] = useState<number>(0); // Total expenditure for selected month
   const [targetSavings, setTargetSavings] = useState<number>(0); // Target savings fetched from user/get
-
+  const [monthlyBudget, setMonthlyBudget] = useState<number>(0);
   if (!userContext) {
     throw new Error("Dashboard must be used within a UserProvider");
   }
@@ -37,6 +39,7 @@ const Dashboard: React.FC = () => {
 
         // Extract target savings from the data
         setTargetSavings(data.targetSavings); // Use the `targetSavings` field
+        setMonthlyBudget(data.monthlyBudget);
       } catch (error) {
         console.error("Error fetching user details:", error);
       }

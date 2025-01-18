@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { UserContext } from "./UserContext";
 import { ExpenditureContext } from "./ExpenditureContext";
 
@@ -17,32 +17,54 @@ const FixedDeposits: React.FC = () => {
 
   const latestSubmission = submissions[submissions.length - 1];
   const totalExpenditure = getTotalExpenditure();
-  const remainingBudget = latestSubmission.monthlyIncome - totalExpenditure;
 
-  // Simulated scraped data for fixed deposits
-  const fixedDeposits = [
-    { bank: "Bank A", tenure: "6 months", minAmount: 500, rate: 3.5 },
-    { bank: "Bank B", tenure: "6 months", minAmount: 1000, rate: 3.8 },
-    { bank: "Bank C", tenure: "12 months", minAmount: 2000, rate: 4.0 },
-    { bank: "Bank D", tenure: "12 months", minAmount: 1500, rate: 4.2 },
-    { bank: "Bank E", tenure: "24 months", minAmount: 2500, rate: 4.5 },
-    { bank: "Bank F", tenure: "36 months", minAmount: 3000, rate: 5.0 },
-  ];
+  // State for API data
+  const [fixedDeposits, setFixedDeposits] = useState<any[]>([]);
+  const [remainingBudget, setRemainingBudget] = useState<number>(0);
 
-  const [selectedTenure, setSelectedTenure] = useState<string>("all");
-  const [minAmountFilter, setMinAmountFilter] = useState<number>(0);
-
-  const filteredDeposits = fixedDeposits
-    .filter((deposit) => {
-      if (selectedTenure !== "all" && deposit.tenure !== selectedTenure) {
-        return false;
+  // Fetch current savings from API
+  useEffect(() => {
+    const fetchRemainingBudget = async () => {
+      try {
+        const response = await fetch("http://localhost:5001/api/bank/expense");
+        if (!response.ok) {
+          throw new Error("Failed to fetch current savings");
+        }
+        const data = await response.json();
+        setRemainingBudget(data.currentSavings); // Assuming API returns `currentSavings`
+      } catch (error) {
+        console.error("Error fetching current savings:", error);
       }
-      if (deposit.minAmount < minAmountFilter) {
-        return false;
+    };
+
+    fetchRemainingBudget();
+  }, []);
+
+  // Fetch fixed deposit rates from API and process the data
+  useEffect(() => {
+    const fetchFixedDeposits = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5001/api/bank/fixed-deposit-rates"
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch fixed deposit rates");
+        }
+        const data = await response.json();
+
+        // Filter out RHB bank offers
+        const filteredData = data.rates.filter(
+          (bank: any) => bank.bankName !== "RHB"
+        );
+
+        setFixedDeposits(filteredData);
+      } catch (error) {
+        console.error("Error fetching fixed deposit rates:", error);
       }
-      return deposit.minAmount <= remainingBudget;
-    })
-    .sort((a, b) => b.rate - a.rate);
+    };
+
+    fetchFixedDeposits();
+  }, []);
 
   return (
     <div
@@ -51,10 +73,10 @@ const FixedDeposits: React.FC = () => {
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        height: "100vh", // Full viewport height
-        width: "100vw", // Full viewport width
+        height: "100vh",
+        width: "100vw",
         background: "#FCF6F5",
-        boxSizing: "border-box", // Ensure padding doesn't affect size
+        boxSizing: "border-box",
         padding: "20px",
       }}
     >
@@ -66,71 +88,25 @@ const FixedDeposits: React.FC = () => {
         <p>Remaining Budget: ${remainingBudget.toFixed(2)}</p>
       </div>
 
-      {/* Filters */}
+      {/* Scrollable Table */}
       <div
         style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "20px",
-          marginBottom: "20px",
-          flexWrap: "wrap",
-          width: "100%", // Full width for filters
-          maxWidth: "1200px", // Restrict maximum width
+          width: "100%",
+          maxWidth: "1200px",
+          maxHeight: "500px",
+          overflowY: "auto",
+          border: "1px solid #ccc",
+          borderRadius: "10px",
+          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          background: "#FFFFFF",
         }}
       >
-        <div>
-          <label>
-            Filter by Tenure:
-            <select
-              value={selectedTenure}
-              onChange={(e) => setSelectedTenure(e.target.value)}
-              style={{
-                marginLeft: "10px",
-                padding: "10px",
-                borderRadius: "5px",
-                border: "1px solid #ccc",
-                width: "150px",
-              }}
-            >
-              <option value="all">All</option>
-              <option value="6 months">6 months</option>
-              <option value="12 months">12 months</option>
-              <option value="24 months">24 months</option>
-              <option value="36 months">36 months</option>
-            </select>
-          </label>
-        </div>
-        <div>
-          <label>
-            Minimum Amount:
-            <input
-              type="number"
-              value={minAmountFilter}
-              onChange={(e) => setMinAmountFilter(Number(e.target.value))}
-              placeholder="Enter amount"
-              style={{
-                marginLeft: "10px",
-                padding: "10px",
-                borderRadius: "5px",
-                border: "1px solid #ccc",
-                width: "150px",
-              }}
-            />
-          </label>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div style={{ width: "100%", maxWidth: "1200px" }}>
-        {filteredDeposits.length > 0 ? (
+        {fixedDeposits.length > 0 ? (
           <table
             style={{
               width: "100%",
               borderCollapse: "collapse",
-              background: "#FFFFFF",
-              borderRadius: "10px",
-              overflow: "hidden",
-              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              tableLayout: "fixed",
             }}
           >
             <thead>
@@ -153,41 +129,61 @@ const FixedDeposits: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredDeposits.map((deposit, index) => {
-                const investedAmount = Math.min(
-                  remainingBudget,
-                  deposit.minAmount
-                );
-                const earnings =
-                  (investedAmount * deposit.rate * parseInt(deposit.tenure)) /
-                  (100 * 12);
-
-                return (
-                  <tr key={index}>
-                    <td style={{ padding: "10px", border: "1px solid #ccc" }}>
-                      {deposit.bank}
-                    </td>
-                    <td style={{ padding: "10px", border: "1px solid #ccc" }}>
-                      {deposit.tenure}
-                    </td>
-                    <td style={{ padding: "10px", border: "1px solid #ccc" }}>
-                      ${deposit.minAmount}
-                    </td>
-                    <td style={{ padding: "10px", border: "1px solid #ccc" }}>
-                      {deposit.rate}
-                    </td>
-                    <td style={{ padding: "10px", border: "1px solid #ccc" }}>
-                      ${earnings.toFixed(2)}
-                    </td>
-                  </tr>
-                );
-              })}
+              {fixedDeposits.map((bank, bankIndex) => (
+                <React.Fragment key={bankIndex}>
+                  {bank.offers.map((offer, offerIndex) => (
+                    <tr
+                      key={offerIndex}
+                      style={{
+                        color: "#000",
+                        backgroundColor:
+                          (bankIndex + offerIndex) % 2 === 0
+                            ? "#F9F9F9"
+                            : "#FFF",
+                      }}
+                    >
+                      {offerIndex === 0 && (
+                        <td
+                          rowSpan={bank.offers.length}
+                          style={{
+                            background: "#990011",
+                            color: "white",
+                            fontWeight: "bold",
+                            textAlign: "center",
+                            verticalAlign: "middle",
+                            border: "1px solid #ccc",
+                          }}
+                        >
+                          {bank.bankName}
+                        </td>
+                      )}
+                      <td style={{ padding: "10px", border: "1px solid #ccc" }}>
+                        {offer.tenure}
+                      </td>
+                      <td style={{ padding: "10px", border: "1px solid #ccc" }}>
+                        {offer.minAmount}
+                      </td>
+                      <td style={{ padding: "10px", border: "1px solid #ccc" }}>
+                        {offer.interestRate}
+                      </td>
+                      <td style={{ padding: "10px", border: "1px solid #ccc" }}>
+                        {/* Leave empty for now */}
+                      </td>
+                    </tr>
+                  ))}
+                </React.Fragment>
+              ))}
             </tbody>
           </table>
         ) : (
-          <p>
-            No fixed deposit options available within your budget and filter
-            criteria.
+          <p
+            style={{
+              textAlign: "center",
+              padding: "10px",
+              color: "#990011",
+            }}
+          >
+            Loading...
           </p>
         )}
       </div>

@@ -6,7 +6,6 @@ const userSchema = new mongoose.Schema(
         required: false, 
         default: 0 
     },
-        
     monthlyIncome: {
         type: Number, 
         required: true, 
@@ -20,8 +19,7 @@ const userSchema = new mongoose.Schema(
         type: Number,
         required: true, // Monthly budget in numbers
         default: 0, // Default budget is 0
-    }, 
-        name: {
+    }, name: {
             type: String,
             required: false, // User's name
         }

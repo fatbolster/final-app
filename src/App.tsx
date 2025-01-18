@@ -15,31 +15,34 @@ import Navbar from "./Navbar";
 import FormModal from "./FormModal";
 import AlertComponent from "./AlertComponent";
 import Transactions from "./Transactions";
+import { MonthProvider } from "./MouthContext";
 
 const App: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   return (
-    <ExpenditureProvider>
-      <UserProvider>
-        <Router>
-          <Navbar onOpenForm={() => setIsFormOpen(true)} />
-          {isFormOpen && <FormModal onClose={() => setIsFormOpen(false)} />}
-          <div style={{ display: "flex" }}>
-            <div style={{ flex: 3, padding: "20px" }}>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/input" element={<InputPage />} />
-                <Route path="/submissions" element={<Submissions />} />
-                <Route path="/fixed-deposits" element={<FixedDeposits />} />
-                <Route path="/transactions" element={<Transactions />} />
-              </Routes>
+    <MonthProvider>
+      <ExpenditureProvider>
+        <UserProvider>
+          <Router>
+            <Navbar onOpenForm={() => setIsFormOpen(true)} />
+            {isFormOpen && <FormModal onClose={() => setIsFormOpen(false)} />}
+            <div style={{ display: "flex" }}>
+              <div style={{ flex: 3, padding: "20px" }}>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/input" element={<InputPage />} />
+                  <Route path="/submissions" element={<Submissions />} />
+                  <Route path="/fixed-deposits" element={<FixedDeposits />} />
+                  <Route path="/transactions" element={<Transactions />} />
+                </Routes>
+              </div>
+              <Sidebar />
             </div>
-            <Sidebar />
-          </div>
-        </Router>
-      </UserProvider>
-    </ExpenditureProvider>
+          </Router>
+        </UserProvider>
+      </ExpenditureProvider>
+    </MonthProvider>
   );
 };
 
