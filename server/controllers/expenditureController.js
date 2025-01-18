@@ -12,20 +12,41 @@ const addOrUpdateExpenditure = async (req, res) => {
         // Check if the month already exists
         const existingExpenditure = await Expenditure.findOne({ month });
         if (existingExpenditure) {
-            // Update the existing expenditure
-            existingExpenditure.allocation = allocation;
+            console.log("Existing expenditure found for month:", month);
+
+            // Loop through the incoming allocation categories
+            allocation.forEach((incomingCategory) => {
+                const existingCategory = existingExpenditure.allocation.find(
+                    (cat) => cat.category === incomingCategory.category
+                );
+
+                if (existingCategory) {
+                    // If category exists, extend its transactions
+                    console.log(`Extending transactions for category: ${incomingCategory.category}`);
+                    existingCategory.transactions.push(...incomingCategory.transactions);
+                } else {
+                    // If category does not exist, add it as a new category
+                    console.log(`Adding new category: ${incomingCategory.category}`);
+                    existingExpenditure.allocation.push(incomingCategory);
+                }
+            });
+
+            // Save the updated expenditure document
             const updatedExpenditure = await existingExpenditure.save();
             return res.status(200).json(updatedExpenditure);
         }
 
-        // Create a new expenditure
+        // If the month does not exist, create a new expenditure document
+        console.log("Creating a new expenditure document for month:", month);
         const newExpenditure = new Expenditure({ month, allocation });
         const savedExpenditure = await newExpenditure.save();
-        res.status(201).json(savedExpenditure);
+        return res.status(201).json(savedExpenditure);
     } catch (error) {
-        res.status(500).json({ message: 'Error adding or updating expenditure', error: error.message });
+        console.error("Error in addOrUpdateExpenditure:", error);
+        return res.status(500).json({ message: 'Error adding or updating expenditure', error: error.message });
     }
 };
+
 
 // Get Expenditures
 const getExpenditures = async (req, res) => {

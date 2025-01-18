@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 // Transaction Schema
 const transactionSchema = new mongoose.Schema({
-    dateLogged: { type: Date, required: true }, // Date the transaction was logged
+    dateLogged: { type: String, required: true }, // Date the transaction was logged
     amount: { type: Number, required: true }, // Transaction amount
     description: { type: String, required: true }, // Description of the transaction
 });
