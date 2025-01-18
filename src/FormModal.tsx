@@ -18,17 +18,67 @@ const FormModal: React.FC<FormModalProps> = ({ onClose }) => {
 
   const { addSubmission } = context;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     const submission = {
-      ageRange,
+      ageGroup: ageRange,
       monthlyIncome: parseFloat(monthlyIncome),
-      targetNetWorth: parseFloat(targetNetWorth),
-      targetSavings: parseFloat(targetSavings),
-      date: new Date().toLocaleString(),
+      targetSavings: parseFloat(targetNetWorth),
+      monthlyBudget: parseFloat(targetSavings),
     };
-    addSubmission(submission);
-    onClose();
+
+    try {
+      // First try updating the user
+      let response = await fetch("http://localhost:5001/api/user/update", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submission),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log("Update failed:", errorData.message);
+
+        if (errorData.message === "User not found") {
+          console.log("Attempting to initialize user...");
+
+          response = await fetch("http://localhost:5001/api/user/initial", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(submission),
+          });
+
+          if (!response.ok) {
+            const initErrorData = await response.json();
+            console.error("Initialization failed:", initErrorData.message);
+            alert(`Failed to initialize user: ${initErrorData.message}`);
+            return;
+          }
+
+          const initData = await response.json();
+          console.log("Initialization successful:", initData);
+          alert("User initialized successfully!");
+          onClose();
+          return;
+        } else {
+          alert(`Failed to update user: ${errorData.message}`);
+          return;
+        }
+      }
+
+      const updateData = await response.json();
+      console.log("Update successful:", updateData);
+      alert("User updated successfully!");
+      onClose();
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred while processing user details.");
+    }
   };
 
   return (
