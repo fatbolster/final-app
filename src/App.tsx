@@ -1,35 +1,65 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+import Dashboard from "./Dashboard";
+import InputPage from "./InputPage";
+import Submissions from "./Submissions";
+import FixedDeposits from "./FixedDeposits";
+import { ExpenditureProvider } from "./ExpenditureContext";
+import { UserProvider } from "./UserContext";
+import Navbar from "./Navbar";
+import FormModal from "./FormModal";
+import AlertComponent from "./AlertComponent";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App: React.FC = () => {
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <ExpenditureProvider>
+      <UserProvider>
+        <Router>
+          <Navbar onOpenForm={() => setIsFormOpen(true)} />
+          {isFormOpen && <FormModal onClose={() => setIsFormOpen(false)} />}
+          <div style={{ display: "flex" }}>
+            <div style={{ flex: 3, padding: "20px" }}>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/input" element={<InputPage />} />
+                <Route path="/submissions" element={<Submissions />} />
+                <Route path="/fixed-deposits" element={<FixedDeposits />} />
+              </Routes>
+            </div>
+            <Sidebar />
+          </div>
+        </Router>
+      </UserProvider>
+    </ExpenditureProvider>
+  );
+};
 
-export default App
+// Sidebar component to conditionally render the AlertComponent
+const Sidebar: React.FC = () => {
+  const location = useLocation(); // Get the current route
+
+  const hideAlertOnRoutes = ["/input", "/fixed-deposits"]; // Routes where AlertComponent should be hidden
+
+  return (
+    <div
+      style={{
+        flex: 1,
+        padding: "20px",
+        borderLeft: hideAlertOnRoutes.includes(location.pathname)
+          ? "none"
+          : "1px solid #ccc",
+      }}
+    >
+      {!hideAlertOnRoutes.includes(location.pathname) && <AlertComponent />}
+    </div>
+  );
+};
+
+export default App;
