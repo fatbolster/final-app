@@ -48,7 +48,29 @@ const initializeUser = async (req, res) => {
     }
 };
 
+const retrieveUser = async (req, res) => {
+    try {
+        // Find the single user document
+        const user = await User.findOne();
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Respond with only the essential fields
+        res.status(200).json({
+            name: user.name,
+            monthlyBudget: user.monthlyBudget,
+            targetNetWorth: user.targetNetWorth,
+            targetSavings: user.targetSavings, // Add any additional fields here
+            ageGroup: user.ageGroup, // Example of other fields
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving user', error: error.message });
+    }
+};
+
 module.exports = {
     updateUser,
     initializeUser,
+    retrieveUser, // Add the new function here
 };
