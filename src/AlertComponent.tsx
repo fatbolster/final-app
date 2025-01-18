@@ -44,6 +44,8 @@ const AlertComponent: React.FC = () => {
           border: "1px solid red",
           marginBottom: "10px",
           backgroundColor: "#FFE4E1",
+          color: "#990000",
+          borderRadius: "5px",
         }}
       >
         {exceedsThreshold ? (
