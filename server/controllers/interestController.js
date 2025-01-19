@@ -5,17 +5,16 @@ const scrapeFixedDepositRates = async (req, res) => {
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
 
-        // Navigate to the target webpage
+        
         await page.goto('https://www.stashaway.sg/r/singapore-fixed-deposit-rates', {
             waitUntil: 'networkidle2',
         });
 
-        // Extract data from the rendered table
         const rates = await page.evaluate(() => {
-            const container = document.querySelector('.MuiTableContainer-root'); // Target the table container
-            if (!container) return []; // Return empty array if container isn't found
+            const container = document.querySelector('.MuiTableContainer-root'); 
+            if (!container) return []; 
 
-            const rows = Array.from(container.querySelectorAll('tr.MuiTableRow-root')); // Select rows
+            const rows = Array.from(container.querySelectorAll('tr.MuiTableRow-root')); 
             const data = [];
             let currentBank = null;
 
@@ -26,7 +25,7 @@ const scrapeFixedDepositRates = async (req, res) => {
                 const interestRate = row.querySelector('td:nth-child(3)')?.innerText.trim();
 
                 if (bankName) {
-                    // Start a new bank group
+                 
                     currentBank = {
                         bankName,
                         offers: [],
@@ -34,7 +33,7 @@ const scrapeFixedDepositRates = async (req, res) => {
                     data.push(currentBank);
                 }
 
-                // Add offers to the current bank group
+               
                 if (currentBank && tenure) {
                     currentBank.offers.push({ tenure, minAmount, interestRate });
                 }

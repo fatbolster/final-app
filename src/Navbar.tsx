@@ -25,16 +25,16 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenForm }) => {
   return (
     <nav
       style={{
-        position: "fixed", // Fix the navbar to the top
+        position: "fixed",
         top: 0,
         left: 0,
         width: "100%",
-        zIndex: 1000, // Ensure it stays above other elements
+        zIndex: 1000,
         margin: 0,
         padding: "10px",
         background: "#990011",
         color: "#FCF6F5",
-        boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)", // Optional shadow for style
+        boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
       }}
     >
       <div style={navContainerStyle}>

@@ -20,7 +20,6 @@ export const UserContext = createContext<UserContextType | undefined>(
 export const UserProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  // Add simulated data here
   const [submissions, setSubmissions] = useState<Submission[]>([
     {
       ageRange: "26-30",

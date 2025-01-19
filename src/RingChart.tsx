@@ -18,7 +18,6 @@ interface RingChartProps {
 const RingChart: React.FC<RingChartProps> = ({ data }) => {
   console.log("Data passed to RingChart:", data);
 
-  // Safely handle cases where data might be missing or incomplete
   const numericData = {
     food: Number(data?.food || 0),
     entertainment: Number(data?.entertainment || 0),
@@ -28,7 +27,6 @@ const RingChart: React.FC<RingChartProps> = ({ data }) => {
 
   console.log("Converted Numeric Data:", numericData);
 
-  // Calculate total expenditure dynamically
   const totalExpenditure = Object.values(numericData).reduce(
     (acc, value) => acc + value,
     0
@@ -68,11 +66,11 @@ const RingChart: React.FC<RingChartProps> = ({ data }) => {
         },
       },
       legend: {
-        position: "bottom" as const, // Move legend to bottom
+        position: "bottom" as const,
       },
     },
-    maintainAspectRatio: false, // Prevent distortion
-    cutout: "70%", // Create a larger "hole" in the middle for text
+    maintainAspectRatio: false,
+    cutout: "70%",
   };
 
   const plugins = [
@@ -81,11 +79,9 @@ const RingChart: React.FC<RingChartProps> = ({ data }) => {
       beforeDraw: (chart: any) => {
         const { ctx, chartArea } = chart;
 
-        // Get chart dimensions
         const centerX = (chartArea.left + chartArea.right) / 2;
         const centerY = (chartArea.top + chartArea.bottom) / 2;
 
-        // Set font size and style
         ctx.save();
         ctx.font = "bold 20px Arial";
         ctx.fillStyle = "#000";

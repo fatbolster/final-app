@@ -88,7 +88,6 @@ const FormModal: React.FC<FormModalProps> = ({ onClose }) => {
             gap: "15px",
           }}
         >
-          {/* Age Range */}
           <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
             <label style={{ color: "#333", fontWeight: "bold" }}>
               Age Range:
@@ -112,7 +111,6 @@ const FormModal: React.FC<FormModalProps> = ({ onClose }) => {
             </select>
           </div>
 
-          {/* Month and Monthly Salary */}
           <div
             style={{
               display: "flex",
@@ -158,7 +156,6 @@ const FormModal: React.FC<FormModalProps> = ({ onClose }) => {
             </div>
           </div>
 
-          {/* Target Savings */}
           <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
             <label style={{ color: "#333", fontWeight: "bold" }}>
               Target Savings:
@@ -176,7 +173,6 @@ const FormModal: React.FC<FormModalProps> = ({ onClose }) => {
             />
           </div>
 
-          {/* Buttons */}
           <div style={{ display: "flex", gap: "10px" }}>
             <button
               type="submit"

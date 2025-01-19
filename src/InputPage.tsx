@@ -104,9 +104,9 @@ const InputPage: React.FC = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        height: "100vh", // Full height to vertically center
-        width: "100vw", // Full width for horizontal centering
-        background: "#FCF6F5", // Matches your theme
+        height: "100vh",
+        width: "100vw",
+        background: "#FCF6F5",
       }}
     >
       <div
@@ -115,9 +115,9 @@ const InputPage: React.FC = () => {
           background: "#FFFFFF",
           padding: "40px",
           borderRadius: "10px",
-          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Subtle shadow for a modern look
-          maxWidth: "500px", // Limit the width of the form
-          width: "90%", // Make it responsive
+          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          maxWidth: "500px",
+          width: "90%",
         }}
       >
         <h2 style={{ marginBottom: "20px", color: "#990011" }}>
@@ -132,7 +132,7 @@ const InputPage: React.FC = () => {
                 onChange={(e) => setSector(e.target.value as typeof sector)}
                 style={{
                   display: "block",
-                  width: "100%", // Full width for consistency
+                  width: "100%",
                   padding: "10px",
                   marginTop: "5px",
                   borderRadius: "5px",
@@ -239,7 +239,7 @@ const InputPage: React.FC = () => {
                 borderRadius: "5px",
                 cursor: "pointer",
                 fontSize: "16px",
-                width: "100%", // Full width button
+                width: "100%",
               }}
             >
               Back to Dashboard

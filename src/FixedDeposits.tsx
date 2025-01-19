@@ -18,7 +18,6 @@ const FixedDeposits: React.FC = () => {
   const latestSubmission = submissions[submissions.length - 1];
   const totalExpenditure = getTotalExpenditure();
 
-  // State for API data
   const [fixedDeposits, setFixedDeposits] = useState<any[]>([]);
   const [remainingBudget, setRemainingBudget] = useState<number>(5000);
 
@@ -50,7 +49,6 @@ const FixedDeposits: React.FC = () => {
         }
         const data = await response.json();
 
-        // Filter out RHB bank offers
         const filteredData = data.rates.filter(
           (bank: any) => bank.bankName !== "RHB"
         );

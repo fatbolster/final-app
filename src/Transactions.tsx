@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 
 const Transactions: React.FC = () => {
-  const [transactionsData, setTransactionsData] = useState<any[]>([]); // Full fetched data
-  const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]); // Filtered transactions
-  const [availableMonths, setAvailableMonths] = useState<string[]>([]); // Available months
-  const [selectedMonth, setSelectedMonth] = useState<string>(""); // Selected month
-  const [selectedCategory, setSelectedCategory] = useState<string>("all"); // Selected category
+  const [transactionsData, setTransactionsData] = useState<any[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]);
+  const [availableMonths, setAvailableMonths] = useState<string[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const capitalize = (str: string): string =>
     str
@@ -13,7 +13,6 @@ const Transactions: React.FC = () => {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(" ");
 
-  // Fetch transactions data from API
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
@@ -25,12 +24,11 @@ const Transactions: React.FC = () => {
         }
         const data = await response.json();
 
-        setTransactionsData(data); // Save fetched data
+        setTransactionsData(data);
 
-        // Extract unique months from the response
         const months = data.map((item: any) => item.month);
-        setAvailableMonths(months); // Set unique months
-        setSelectedMonth(months[0]); // Set default month to the first available
+        setAvailableMonths(months);
+        setSelectedMonth(months[0]);
       } catch (error) {
         console.error("Error fetching transactions:", error);
       }
@@ -52,7 +50,7 @@ const Transactions: React.FC = () => {
         (allocation: any) =>
           allocation.transactions.map((transaction: any) => ({
             ...transaction,
-            category: allocation.category, // Add category to each transaction
+            category: allocation.category,
           }))
       );
 
@@ -69,7 +67,6 @@ const Transactions: React.FC = () => {
     }
   }, [selectedMonth, selectedCategory, transactionsData]);
 
-  // Handle deleting a transaction
   const handleDelete = async (transactionId: string) => {
     try {
       const response = await fetch(
@@ -77,7 +74,7 @@ const Transactions: React.FC = () => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ transactionId }), // Send transaction ID to the backend
+          body: JSON.stringify({ transactionId }),
         }
       );
 
@@ -88,7 +85,6 @@ const Transactions: React.FC = () => {
       const updatedData = await response.json();
       console.log("Transaction deleted successfully:", updatedData);
 
-      // Update local state after deletion
       setTransactionsData((prevData) => {
         return prevData.map((item) => {
           if (item.month === selectedMonth) {
@@ -104,7 +100,6 @@ const Transactions: React.FC = () => {
         });
       });
 
-      // Reapply filters
       setFilteredTransactions((prevFiltered) =>
         prevFiltered.filter((transaction) => transaction._id !== transactionId)
       );
@@ -133,7 +128,6 @@ const Transactions: React.FC = () => {
           flexWrap: "wrap",
         }}
       >
-        {/* Month Filter */}
         <div>
           <label
             style={{

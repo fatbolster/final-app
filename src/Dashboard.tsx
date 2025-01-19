@@ -21,7 +21,7 @@ const Dashboard: React.FC = () => {
     throw new Error("Dashboard must be used within a UserProvider");
   }
 
-  // Fetch user data including `incomeHistory`
+  // Fetch user data
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
@@ -30,8 +30,6 @@ const Dashboard: React.FC = () => {
           throw new Error("Failed to fetch user details");
         }
         const data = await response.json();
-        console.log("Fetched User Details:", data);
-
         setTargetSavings(data.targetSavings || 0);
         setIncomeHistory(data.incomeHistory || []);
       } catch (error) {
@@ -52,7 +50,6 @@ const Dashboard: React.FC = () => {
           throw new Error("Failed to fetch expenditure data");
         }
         const data = await response.json();
-        console.log("Fetched Expenditure Data:", data);
 
         const months = [...new Set(data.map((item: any) => item.month))];
         setAvailableMonths(months);
@@ -69,17 +66,17 @@ const Dashboard: React.FC = () => {
     fetchExpenditures();
   }, [selectedMonth, setSelectedMonth]);
 
-  // Calculate totals across all logs
   useEffect(() => {
-    // Total income
-    const totalIncomeSum = incomeHistory.reduce(
-      (sum: number, income: any) => sum + (income.monthlyIncome || 0),
-      0
-    );
-    setTotalIncome(totalIncomeSum);
-    console.log("Total Income Across All Logs:", totalIncomeSum);
+    if (!selectedMonth || expenditureData.length === 0) {
+      setCategoryTotals(null);
+      setTotalExpenditure(0);
+      return;
+    }
 
-    // Total expenditure
+    const filteredData = expenditureData.filter(
+      (item: any) => item.month === selectedMonth
+    );
+
     const totals: any = {
       food: 0,
       lifestyle: 0,
@@ -88,7 +85,7 @@ const Dashboard: React.FC = () => {
     };
     let totalExpenditureSum = 0;
 
-    expenditureData.forEach((expenditure: any) => {
+    filteredData.forEach((expenditure: any) => {
       if (expenditure.allocation) {
         expenditure.allocation.forEach((category: any) => {
           if (category.transactions) {
@@ -104,12 +101,18 @@ const Dashboard: React.FC = () => {
 
     setCategoryTotals(totals);
     setTotalExpenditure(totalExpenditureSum);
-    console.log("Total Expenditure Across All Logs:", totalExpenditureSum);
-  }, [incomeHistory, expenditureData]);
-  // Correct calculation for remaining budget
+  }, [selectedMonth, expenditureData]);
+
+  useEffect(() => {
+    const totalIncomeSum = incomeHistory.reduce(
+      (sum: number, income: any) => sum + (income.monthlyIncome || 0),
+      0
+    );
+    setTotalIncome(totalIncomeSum);
+  }, [incomeHistory]);
+
   const remainingBudget = totalIncome - totalExpenditure;
 
-  // Calculate progress toward savings goal
   const progress =
     targetSavings > 0
       ? Math.min((remainingBudget / targetSavings) * 100, 100)
@@ -119,7 +122,6 @@ const Dashboard: React.FC = () => {
     <div>
       <h2>Monthly Expenditure Breakdown</h2>
 
-      {/* Month Selector */}
       <div style={{ marginBottom: "20px" }}>
         <label>
           Select Month:
@@ -142,11 +144,8 @@ const Dashboard: React.FC = () => {
         </label>
       </div>
 
-      {categoryTotals && (
-        <RingChart data={categoryTotals} total={totalExpenditure} />
-      )}
+      {categoryTotals && <RingChart data={categoryTotals} />}
 
-      {/* Progress Bar */}
       <div style={{ marginTop: "20px" }}>
         <h3>Progress Towards Targeted Savings</h3>
         <div
@@ -180,17 +179,12 @@ const Dashboard: React.FC = () => {
             {progress.toFixed(2)}%
           </span>
         </div>
-        <p
-          style={{
-            color: remainingBudget < 0 ? "red" : "inherit", // Highlight negative budget
-          }}
-        >
+        <p>
           Remaining Budget: ${remainingBudget.toFixed(2)} <br />
           Targeted Savings: ${targetSavings.toFixed(2)}
         </p>
       </div>
 
-      {/* Grow Savings Button */}
       <div style={{ marginTop: "20px" }}>
         <button
           onClick={() => navigate("/fixed-deposits")}

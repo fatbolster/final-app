@@ -48,7 +48,7 @@ const addOrUpdateExpenditure = async (req, res) => {
 };
 
 
-// Get Expenditures
+
 const getExpenditures = async (req, res) => {
     try {
         const { month } = req.query;
@@ -63,32 +63,31 @@ const getExpenditures = async (req, res) => {
 };
 
 const deleteTransaction = async (req, res) => {
-    const { transactionId } = req.body; // Receive the transaction ID in the request body
+    const { transactionId } = req.body; 
   
     try {
-      // Step 1: Remove the transaction
+    
       const result = await Expenditure.findOneAndUpdate(
-        { "allocation.transactions._id": transactionId }, // Locate the transaction
+        { "allocation.transactions._id": transactionId }, 
         {
-          $pull: { "allocation.$[].transactions": { _id: transactionId } }, // Remove the transaction
+          $pull: { "allocation.$[].transactions": { _id: transactionId } }, 
         },
-        { new: true } // Return the updated document
+        { new: true } 
       );
   
       if (!result) {
         return res.status(404).json({ message: "Transaction not found" });
       }
   
-      // Step 2: Check if the allocation is now empty
+      
       const updatedMonth = await Expenditure.findById(result._id);
   
-      // If all `transactions` arrays in `allocation` are empty, delete the entire month object
       const isEmpty = updatedMonth.allocation.every(
         (allocation) => allocation.transactions.length === 0
       );
   
       if (isEmpty) {
-        await Expenditure.findByIdAndDelete(result._id); // Delete the entire month object
+        await Expenditure.findByIdAndDelete(result._id); 
         return res.status(200).json({ message: "Month deleted successfully" });
       }
   
