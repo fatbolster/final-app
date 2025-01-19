@@ -22,7 +22,6 @@ const FixedDeposits: React.FC = () => {
   const [fixedDeposits, setFixedDeposits] = useState<any[]>([]);
   const [remainingBudget, setRemainingBudget] = useState<number>(5000);
 
-  // Fetch current savings from API
   useEffect(() => {
     const fetchRemainingBudget = async () => {
       try {
@@ -31,7 +30,7 @@ const FixedDeposits: React.FC = () => {
           throw new Error("Failed to fetch current savings");
         }
         const data = await response.json();
-        setRemainingBudget(data.currentSavings); // Assuming API returns `currentSavings`
+        setRemainingBudget(data.currentSavings);
       } catch (error) {
         console.error("Error fetching current savings:", error);
       }
@@ -40,7 +39,6 @@ const FixedDeposits: React.FC = () => {
     fetchRemainingBudget();
   }, []);
 
-  // Fetch fixed deposit rates from API and process the data
   useEffect(() => {
     const fetchFixedDeposits = async () => {
       try {
@@ -80,7 +78,6 @@ const FixedDeposits: React.FC = () => {
         padding: "20px",
       }}
     >
-      {/* Centered Header */}
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
         <h2 style={{ color: "#990011" }}>
           Best Fixed Deposit Rates for Your Budget
@@ -88,7 +85,6 @@ const FixedDeposits: React.FC = () => {
         <p>Remaining Budget: ${remainingBudget.toFixed(2)}</p>
       </div>
 
-      {/* Scrollable Table */}
       <div
         style={{
           width: "100%",
@@ -132,11 +128,10 @@ const FixedDeposits: React.FC = () => {
               {fixedDeposits.map((bank, bankIndex) => (
                 <React.Fragment key={bankIndex}>
                   {bank.offers.map((offer, offerIndex) => {
-                    const principal = remainingBudget; // Use remaining budget as principal
-                    const tenureYears = parseFloat(offer.tenure); // Ensure tenure is in years
-                    const interestRate = parseFloat(offer.interestRate); // Ensure interest rate is a number
+                    const principal = remainingBudget;
+                    const tenureYears = parseFloat(offer.tenure);
+                    const interestRate = parseFloat(offer.interestRate);
 
-                    // Calculate potential earnings
                     const potentialEarnings =
                       principal * tenureYears * (interestRate / 100);
 
