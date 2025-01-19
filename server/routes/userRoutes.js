@@ -1,16 +1,11 @@
-const express = require('express');
-const { updateUser, initializeUser, retrieveUser} = require('../controllers/userController');
-
+const express = require("express");
+const { updateUserIncome, retrieveUser } = require("../controllers/userController");
 const router = express.Router();
 
-// Initialize user details (only needed once)
-router.post('/initial', initializeUser);
+// PUT: Update user income (add/replace income for a specific month)
+router.put("/update-income", updateUserIncome);
 
-// Update user details
-router.put('/update', updateUser);
-
-router.get('/expense', retrieveUser)
-
-
+// GET: Retrieve user data
+router.get("/retrieve", retrieveUser);
 
 module.exports = router;

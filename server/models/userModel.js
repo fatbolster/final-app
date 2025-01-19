@@ -1,30 +1,14 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const userSchema = new mongoose.Schema(
-    {   ageGroup: {
-        type: String, 
-        required: false, 
-        default: 0 
-    },
-    monthlyIncome: {
-        type: Number, 
-        required: true, 
-        default: 0 
-    },
-    targetSavings: {
-        type: Number,
-        required: true, // Target net worth in numbers
-        default: 0, // Default target net worth is 0
-    }, monthlyBudget: {
-        type: Number,
-        required: true, // Monthly budget in numbers
-        default: 0, // Default budget is 0
-    }, name: {
-            type: String,
-            required: false, // User's name
-        }
-        
-    }
-);
+const incomeHistorySchema = new mongoose.Schema({
+    month: { type: String, required: true }, // Format: "YYYY-MM"
+    monthlyIncome: { type: Number, required: true },
+  });
+  
+const userSchema = new mongoose.Schema({
+  ageGroup: { type: String, required: false, default: "0" },
+  incomeHistory: [incomeHistorySchema], // Array of historical income records
+  targetSavings: { type: Number, required: true, default: 0 },
+});
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);

@@ -20,7 +20,7 @@ const FixedDeposits: React.FC = () => {
 
   // State for API data
   const [fixedDeposits, setFixedDeposits] = useState<any[]>([]);
-  const [remainingBudget, setRemainingBudget] = useState<number>(0);
+  const [remainingBudget, setRemainingBudget] = useState<number>(5000);
 
   // Fetch current savings from API
   useEffect(() => {
@@ -131,46 +131,64 @@ const FixedDeposits: React.FC = () => {
             <tbody>
               {fixedDeposits.map((bank, bankIndex) => (
                 <React.Fragment key={bankIndex}>
-                  {bank.offers.map((offer, offerIndex) => (
-                    <tr
-                      key={offerIndex}
-                      style={{
-                        color: "#000",
-                        backgroundColor:
-                          (bankIndex + offerIndex) % 2 === 0
-                            ? "#F9F9F9"
-                            : "#FFF",
-                      }}
-                    >
-                      {offerIndex === 0 && (
+                  {bank.offers.map((offer, offerIndex) => {
+                    const principal = remainingBudget; // Use remaining budget as principal
+                    const tenureYears = parseFloat(offer.tenure); // Ensure tenure is in years
+                    const interestRate = parseFloat(offer.interestRate); // Ensure interest rate is a number
+
+                    // Calculate potential earnings
+                    const potentialEarnings =
+                      principal * tenureYears * (interestRate / 100);
+
+                    return (
+                      <tr
+                        key={offerIndex}
+                        style={{
+                          color: "#000",
+                          backgroundColor:
+                            (bankIndex + offerIndex) % 2 === 0
+                              ? "#F9F9F9"
+                              : "#FFF",
+                        }}
+                      >
+                        {offerIndex === 0 && (
+                          <td
+                            rowSpan={bank.offers.length}
+                            style={{
+                              background: "#990011",
+                              color: "white",
+                              fontWeight: "bold",
+                              textAlign: "center",
+                              verticalAlign: "middle",
+                              border: "1px solid #ccc",
+                            }}
+                          >
+                            {bank.bankName}
+                          </td>
+                        )}
                         <td
-                          rowSpan={bank.offers.length}
-                          style={{
-                            background: "#990011",
-                            color: "white",
-                            fontWeight: "bold",
-                            textAlign: "center",
-                            verticalAlign: "middle",
-                            border: "1px solid #ccc",
-                          }}
+                          style={{ padding: "10px", border: "1px solid #ccc" }}
                         >
-                          {bank.bankName}
+                          {offer.tenure}
                         </td>
-                      )}
-                      <td style={{ padding: "10px", border: "1px solid #ccc" }}>
-                        {offer.tenure}
-                      </td>
-                      <td style={{ padding: "10px", border: "1px solid #ccc" }}>
-                        {offer.minAmount}
-                      </td>
-                      <td style={{ padding: "10px", border: "1px solid #ccc" }}>
-                        {offer.interestRate}
-                      </td>
-                      <td style={{ padding: "10px", border: "1px solid #ccc" }}>
-                        {/* Leave empty for now */}
-                      </td>
-                    </tr>
-                  ))}
+                        <td
+                          style={{ padding: "10px", border: "1px solid #ccc" }}
+                        >
+                          {offer.minAmount}
+                        </td>
+                        <td
+                          style={{ padding: "10px", border: "1px solid #ccc" }}
+                        >
+                          {offer.interestRate}
+                        </td>
+                        <td
+                          style={{ padding: "10px", border: "1px solid #ccc" }}
+                        >
+                          ${potentialEarnings.toFixed(2)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </React.Fragment>
               ))}
             </tbody>

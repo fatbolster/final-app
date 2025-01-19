@@ -73,11 +73,11 @@ const Transactions: React.FC = () => {
   const handleDelete = async (transactionId: string) => {
     try {
       const response = await fetch(
-        `http://localhost:5001/api/expenditure/delete`,
+        "http://localhost:5001/api/expenditure/delete",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ transactionId }),
+          body: JSON.stringify({ transactionId }), // Send transaction ID to the backend
         }
       );
 
@@ -85,23 +85,29 @@ const Transactions: React.FC = () => {
         throw new Error("Failed to delete transaction");
       }
 
-      // Re-fetch data to update the UI
       const updatedData = await response.json();
-      setTransactionsData(updatedData);
+      console.log("Transaction deleted successfully:", updatedData);
 
-      // Refetch filtered data
-      const monthData = updatedData.find(
-        (item: any) => item.month === selectedMonth
+      // Update local state after deletion
+      setTransactionsData((prevData) => {
+        return prevData.map((item) => {
+          if (item.month === selectedMonth) {
+            const updatedAllocation = item.allocation.map((allocation) => ({
+              ...allocation,
+              transactions: allocation.transactions.filter(
+                (transaction) => transaction._id !== transactionId
+              ),
+            }));
+            return { ...item, allocation: updatedAllocation };
+          }
+          return item;
+        });
+      });
+
+      // Reapply filters
+      setFilteredTransactions((prevFiltered) =>
+        prevFiltered.filter((transaction) => transaction._id !== transactionId)
       );
-      const flattenedTransactions = monthData
-        ? monthData.allocation.flatMap((allocation: any) =>
-            allocation.transactions.map((transaction: any) => ({
-              ...transaction,
-              category: allocation.category,
-            }))
-          )
-        : [];
-      setFilteredTransactions(flattenedTransactions);
     } catch (error) {
       console.error("Error deleting transaction:", error);
     }
@@ -113,6 +119,8 @@ const Transactions: React.FC = () => {
         padding: "20px",
         background: "#FCF6F5",
         minHeight: "100vh",
+        width: "100vw",
+        boxSizing: "border-box",
       }}
     >
       <h2 style={{ textAlign: "center", color: "#990011" }}>Transactions</h2>
@@ -127,7 +135,12 @@ const Transactions: React.FC = () => {
       >
         {/* Month Filter */}
         <div>
-          <label>
+          <label
+            style={{
+              color: "#4F4F4F",
+              fontWeight: "bold",
+            }}
+          >
             Filter by Month:
             <select
               value={selectedMonth}
@@ -150,7 +163,12 @@ const Transactions: React.FC = () => {
 
         {/* Category Filter */}
         <div>
-          <label>
+          <label
+            style={{
+              color: "#4F4F4F",
+              fontWeight: "bold",
+            }}
+          >
             Filter by Category:
             <select
               value={selectedCategory}
@@ -180,6 +198,7 @@ const Transactions: React.FC = () => {
           padding: "20px",
           borderRadius: "10px",
           boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          overflowX: "auto",
         }}
       >
         {filteredTransactions.length > 0 ? (

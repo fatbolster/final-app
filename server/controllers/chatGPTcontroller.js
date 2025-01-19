@@ -34,9 +34,9 @@ const analyzeSpending = async (req, res) => {
         const prompt = `
 User Demographic Information:
 - Age Group: ${user.ageGroup}
-- Monthly Income: $${user.monthlyIncome}
-- Monthly Budget: $${user.monthlyBudget}
 - Target Net Worth: $${user.targetNetWorth}
+- Income History: $${user.incomeHistory}
+- Target Savings: $${user.currentSavings}
 
 User Spending Information for ${month}:
 ${Object.entries(categoryTotals)

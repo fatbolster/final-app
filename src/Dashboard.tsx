@@ -9,37 +9,31 @@ const Dashboard: React.FC = () => {
   const { selectedMonth, setSelectedMonth } = useMonthContext();
   const navigate = useNavigate();
 
-  const [availableMonths, setAvailableMonths] = useState<string[]>([]); // Dynamically fetched months
+  const [availableMonths, setAvailableMonths] = useState<string[]>([]);
+  const [expenditureData, setExpenditureData] = useState<any[]>([]);
+  const [incomeHistory, setIncomeHistory] = useState<any[]>([]);
+  const [categoryTotals, setCategoryTotals] = useState<any | null>(null);
+  const [totalExpenditure, setTotalExpenditure] = useState<number>(0);
+  const [targetSavings, setTargetSavings] = useState<number>(0);
+  const [totalIncome, setTotalIncome] = useState<number>(0);
 
-  const [expenditureData, setExpenditureData] = useState<any[]>([]); // Store raw expenditure data
-  const [categoryTotals, setCategoryTotals] = useState<any | null>(null); // Sum totals for each category
-  const [totalExpenditure, setTotalExpenditure] = useState<number>(0); // Total expenditure for selected month
-  const [targetSavings, setTargetSavings] = useState<number>(0); // Target savings fetched from user/get
-  const [monthlyBudget, setMonthlyBudget] = useState<number>(0);
   if (!userContext) {
     throw new Error("Dashboard must be used within a UserProvider");
   }
 
-  const { submissions } = userContext;
-
-  const latestSubmission = submissions[submissions.length - 1];
-  if (!latestSubmission) {
-    return <p>No data available. Please submit your details.</p>;
-  }
-
+  // Fetch user data including `incomeHistory`
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        const response = await fetch("http://localhost:5001/api/user/expense");
+        const response = await fetch("http://localhost:5001/api/user/retrieve");
         if (!response.ok) {
           throw new Error("Failed to fetch user details");
         }
         const data = await response.json();
         console.log("Fetched User Details:", data);
 
-        // Extract target savings from the data
-        setTargetSavings(data.targetSavings); // Use the `targetSavings` field
-        setMonthlyBudget(data.monthlyBudget);
+        setTargetSavings(data.targetSavings || 0);
+        setIncomeHistory(data.incomeHistory || []);
       } catch (error) {
         console.error("Error fetching user details:", error);
       }
@@ -47,83 +41,6 @@ const Dashboard: React.FC = () => {
 
     fetchUserDetails();
   }, []);
-
-  // Fetch expenditure data and extract unique months
-  useEffect(() => {
-    const fetchExpenditures = async () => {
-      try {
-        const response = await fetch("http://localhost:5001/api/user/expense");
-        if (!response.ok) {
-          throw new Error("Failed to fetch expenditure data");
-        }
-        const data = await response.json();
-
-        console.log("Fetched Expenditure Data:", data);
-
-        // Extract unique months from the response
-        const months = [...new Set(data.map((item: any) => item.month))];
-        setAvailableMonths(months);
-
-        // Set default selected month to the first available month
-        if (months.length > 0) {
-          setSelectedMonth(months[0]);
-        }
-
-        setExpenditureData(data); // Store raw expenditure data for further processing
-      } catch (error) {
-        console.error("Error fetching expenditure data:", error);
-      }
-    };
-
-    fetchExpenditures();
-  }, []);
-
-  // Compute category totals and total expenditure based on the selected month
-  useEffect(() => {
-    if (!selectedMonth || expenditureData.length === 0) {
-      setCategoryTotals(null); // Reset categoryTotals if no month is selected or no data
-      setTotalExpenditure(0);
-      return;
-    }
-
-    const totals: any = {
-      food: 0,
-      lifestyle: 0,
-      shopping: 0,
-      entertainment: 0,
-    };
-
-    // Filter expenditures for the selected month and compute totals
-    expenditureData
-      .filter((expenditure: any) => expenditure.month === selectedMonth)
-      .forEach((expenditure: any) => {
-        expenditure.allocation.forEach((category: any) => {
-          if (totals[category.category.toLowerCase()] !== undefined) {
-            category.transactions.forEach((transaction: any) => {
-              totals[category.category.toLowerCase()] += transaction.amount;
-            });
-          }
-        });
-      });
-
-    console.log("Updated Category Totals for Selected Month:", totals);
-
-    setCategoryTotals(totals);
-
-    // Compute total expenditure dynamically
-    const total = Object.values(totals).reduce(
-      (acc: number, value: number) => acc + value,
-      0
-    );
-    setTotalExpenditure(total);
-  }, [selectedMonth, expenditureData]);
-
-  const remainingBudget =
-    latestSubmission.monthlyIncome - (totalExpenditure || 0);
-  const progress = Math.min(
-    (remainingBudget / targetSavings) * 100, // Use targetSavings fetched from user/get
-    100
-  );
 
   useEffect(() => {
     const fetchExpenditures = async () => {
@@ -135,66 +52,68 @@ const Dashboard: React.FC = () => {
           throw new Error("Failed to fetch expenditure data");
         }
         const data = await response.json();
+        console.log("Fetched Expenditure Data:", data);
 
-        console.log("Fetched Expenditure Data from API:", data);
-
-        // Extract unique months from the response
         const months = [...new Set(data.map((item: any) => item.month))];
         setAvailableMonths(months);
+        setExpenditureData(data);
 
-        // Set default selected month to the first available month
-        if (months.length > 0) {
+        if (months.length > 0 && !selectedMonth) {
           setSelectedMonth(months[0]);
         }
-
-        // Store raw expenditure data for further processing
-        setExpenditureData(data);
       } catch (error) {
         console.error("Error fetching expenditure data:", error);
       }
     };
 
     fetchExpenditures();
-  }, []);
+  }, [selectedMonth, setSelectedMonth]);
 
+  // Calculate totals across all logs
   useEffect(() => {
-    if (!selectedMonth || expenditureData.length === 0) {
-      setCategoryTotals(null);
-      setTotalExpenditure(0);
-      return;
-    }
+    // Total income
+    const totalIncomeSum = incomeHistory.reduce(
+      (sum: number, income: any) => sum + (income.monthlyIncome || 0),
+      0
+    );
+    setTotalIncome(totalIncomeSum);
+    console.log("Total Income Across All Logs:", totalIncomeSum);
 
+    // Total expenditure
     const totals: any = {
       food: 0,
       lifestyle: 0,
       shopping: 0,
       entertainment: 0,
     };
+    let totalExpenditureSum = 0;
 
-    // Filter expenditures for the selected month and compute totals
-    expenditureData
-      .filter((expenditure: any) => expenditure.month === selectedMonth)
-      .forEach((expenditure: any) => {
+    expenditureData.forEach((expenditure: any) => {
+      if (expenditure.allocation) {
         expenditure.allocation.forEach((category: any) => {
-          if (totals[category.category.toLowerCase()] !== undefined) {
+          if (category.transactions) {
             category.transactions.forEach((transaction: any) => {
-              totals[category.category.toLowerCase()] += transaction.amount;
+              totals[category.category.toLowerCase()] +=
+                transaction.amount || 0;
+              totalExpenditureSum += transaction.amount || 0;
             });
           }
         });
-      });
-
-    console.log("Category Totals for Selected Month:", totals);
+      }
+    });
 
     setCategoryTotals(totals);
+    setTotalExpenditure(totalExpenditureSum);
+    console.log("Total Expenditure Across All Logs:", totalExpenditureSum);
+  }, [incomeHistory, expenditureData]);
+  // Correct calculation for remaining budget
+  const remainingBudget = totalIncome - totalExpenditure;
 
-    // Compute total expenditure dynamically
-    const total = Object.values(totals).reduce(
-      (acc: number, value: number) => acc + value,
-      0
-    );
-    setTotalExpenditure(total);
-  }, [selectedMonth, expenditureData]);
+  // Calculate progress toward savings goal
+  const progress =
+    targetSavings > 0
+      ? Math.min((remainingBudget / targetSavings) * 100, 100)
+      : 0;
 
   return (
     <div>
@@ -227,9 +146,9 @@ const Dashboard: React.FC = () => {
         <RingChart data={categoryTotals} total={totalExpenditure} />
       )}
 
-      {/* Horizontal Progress Bar */}
+      {/* Progress Bar */}
       <div style={{ marginTop: "20px" }}>
-        <h3>Progress Towards Targetted Savings</h3>
+        <h3>Progress Towards Targeted Savings</h3>
         <div
           style={{
             position: "relative",
@@ -261,13 +180,17 @@ const Dashboard: React.FC = () => {
             {progress.toFixed(2)}%
           </span>
         </div>
-        <p>
+        <p
+          style={{
+            color: remainingBudget < 0 ? "red" : "inherit", // Highlight negative budget
+          }}
+        >
           Remaining Budget: ${remainingBudget.toFixed(2)} <br />
-          Targetted Savings: ${targetSavings.toFixed(2)}
+          Targeted Savings: ${targetSavings.toFixed(2)}
         </p>
       </div>
 
-      {/* New Button for Fixed Deposit Rates */}
+      {/* Grow Savings Button */}
       <div style={{ marginTop: "20px" }}>
         <button
           onClick={() => navigate("/fixed-deposits")}
